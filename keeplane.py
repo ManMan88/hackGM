@@ -23,6 +23,7 @@ class KeepLane(LowLevelDriver):
     def drive(self, state, control):
         angle = state.angle
         dist = state.trackPos - self._center
+        print dist
         
         control.steer = (angle - dist*0.5)/self._steer_max
 

@@ -178,5 +178,11 @@ class TestDriver(Driver):
         
     def steer(self):
         self.keeper.drive(self.state, self.control)
-        print self.keeper.findCurve(self.state)
+        curvature = self.keeper.findCurve(self.state)
+        print self.isCurve(curvature)
     
+    def isCurve(self, curvature):
+        """
+        True if angular velocity > steer max.
+        """
+        return self.max_speed/curvature > self.steer_lock

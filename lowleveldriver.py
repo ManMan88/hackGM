@@ -55,8 +55,6 @@ class LowLevelDriver(object):
     def findCurve(self, state):
         track_edges = self.calculateTrackEdges(state)
         
-        print track_edges
-        
         leftMax =  np.argmax(state.track)
         rightMax =  len(state.track) - np.argmax(state.track[::-1]) -1
         
@@ -70,10 +68,5 @@ class LowLevelDriver(object):
         leftCurve = ((1 + (2*leftPoly[0]*leftTrack[0,0] + leftPoly[1])**2)**1.5) / np.absolute(2*leftPoly[0])
         curve = (rightCurve+leftCurve)/2
         return curve
-        
-        
     
-        
-        
-        
-        
+    
