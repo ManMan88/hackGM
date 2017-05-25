@@ -186,9 +186,6 @@ class TestDriver(Driver):
         #print self.isCurve(curvature)
     
     def speed(self):
-
- 
-        print self.isCurve(curvature)
         if 5 < self.state.curLapTime < 15:
             target_vel = self.velSwitcher.get_target_velocity(self.state.curLapTime)
             self.velocityKeeper.setVelocity(target_vel)
