@@ -12,7 +12,7 @@ import carControl
 import carState
 import msgParser
 
-from keeplane import KeepLane, SwitchLane, KeepVelocity, SwitchVelocity
+# from keeplane import KeepLane, SwitchLane, KeepVelocity, SwitchVelocity
 
 STUCK_TIME = 25
 
