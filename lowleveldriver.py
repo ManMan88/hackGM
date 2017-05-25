@@ -49,7 +49,7 @@ class LowLevelDriver(object):
             counter+=1
         return track_edges
         
-    def findGeneralDirection(self):
+    def findCurve(self):
         leftMax =  np.argmax(self.state.track)
         rightMax =  len(self.state.track) - np.argmax(np.flip(self.state.track) -1
         rightTrack = track_edges[rightMax+1:,:]
