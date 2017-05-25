@@ -37,6 +37,7 @@ parser.add_argument('--lanes', action='store', dest='lanes', default='FORWARD,FO
                          'FORWARD or OPPOSITE indicating the lane direction')
 parser.add_argument('--seed', action='store', dest='seed', default=random.randint(0, 100),
                     help='Seed for the random behaviour. If not specified will still have some randomness')
+parser.add_argument('--maxSpeed', default=250, type=int, help="Maximum speed set by controller")
 
 arguments = parser.parse_args()
 
@@ -63,7 +64,7 @@ curEpisode = 0
 
 verbose = False
 
-d = driver.TestDriver(arguments.stage, arguments.lanes, arguments.seed)
+d = driver.TestDriver(arguments.stage, arguments.lanes, arguments.seed, arguments.maxSpeed)
 
 while not shutdownClient:
     while True:

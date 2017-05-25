@@ -171,8 +171,10 @@ class Driver(object):
         pass
 
 class TestDriver(Driver):
-    def __init__(self, stage, lanes_str, seed):
+    def __init__(self, stage, lanes_str, seed, max_speed):
         Driver.__init__(self, stage, lanes_str, seed)
+        self.seed = seed
+        self.max_speed = max_speed
         self.laneKeeper = KeepLane(lanes_str, 0)
         self.velocityKeeper = KeepVelocity()
         self.velSwitcher = SwitchVelocity(0, self.max_speed, 5, 10)
@@ -181,6 +183,8 @@ class TestDriver(Driver):
         self.velocityKeeper.setVelocity(0)
         
     def steer(self):
+        print self.seed, self.state.opponents
+        print
         self.laneKeeper.drive(self.state, self.control)
         #curvature = self.laneKeeper.findCurve(self.state)
         #print self.isCurve(curvature)
