@@ -23,8 +23,6 @@ class KeepLane(LowLevelDriver):
 
         self._steer_max = 0.366519
         self.velocityKeeper = KeepVelocity()
-        self.velSwitcher = SwitchVelocity(0, parent.max_speed, 5, 10)
-        self.break_event = SwitchVelocity(parent.max_speed, 0, 20, 3)
 
     def drive(self, sensors, control):
 
@@ -36,8 +34,11 @@ class KeepLane(LowLevelDriver):
         self._logger.debug('steer = %s; dist = %s', control.steer, dist)
         if sensors.curLapTime - self.startTime < self.accelerateTime:
             self._logger.debug('accelerating (time)!')
+
+            self.velSwitcher = SwitchVelocity(0, self.parent.max_speed, 5, 10)
             target_vel = self.velSwitcher.get_target_velocity(sensors.curLapTime)
             self.velocityKeeper.setVelocity(target_vel)
+
         curvature = self.findCurve(sensors)
         if self.isCurve(curvature, self.parent.max_speed,self.parent.steer_lock ):
             self._logger.debug('IN CURVE!!!!')
@@ -93,6 +94,7 @@ class KeepVelocity(object):
 
     def drive(self, state, control):
         accel = self.velocityPID.update(state.speedX)
+        print('accel: ', accel)
         #        print accel
         if accel >= 0:
             control.accel = accel
