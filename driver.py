@@ -180,8 +180,8 @@ class TestDriver(Driver):
         
     def steer(self):
         self.laneKeeper.drive(self.state, self.control)
-        curvature = self.laneKeeper.findCurve(self.state)
-        print self.isCurve(curvature)
+        #curvature = self.laneKeeper.findCurve(self.state)
+        #print self.isCurve(curvature)
     
     def speed(self):
         self.velocityKeeper.drive(self.state, self.control)

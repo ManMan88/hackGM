@@ -23,7 +23,6 @@ class KeepLane(LowLevelDriver):
     def drive(self, state, control):
         angle = state.angle
         dist = state.trackPos - self._center
-        print dist
         
         control.steer = (angle - dist*0.5)/self._steer_max
 
@@ -49,7 +48,7 @@ class SwitchLane(LowLevelDriver):
         control.steer= steer
 
 class SwitchVelocity(LowLevelDriver):
-    def __init__(self,start_velocity,new_velocity,start_time,duration)
+    def __init__(self,start_velocity,new_velocity,start_time,duration):
         t0, v0 = start_time, start_velocity
         t1, v1 = start_time + duration, new_velocity
         dv0, dv1 = 0, 0
@@ -67,14 +66,15 @@ class SwitchVelocity(LowLevelDriver):
         control.accel = accel
     
 class KeepVelocity(LowLevelDriver):
-    def __init__(self)
+    def __init__(self):
         self.velocityPID = PID()
     
     def setVelocity(self,velocity):
         self.velocityPID.setPoint(velocity)
     
-    def drive(self,state,control)
+    def drive(self,state,control):
         accel = self.velocityPID.update(state.speedX)
+        print accel
         if accel >= 0:
             control.accel = accel
         else:
@@ -91,12 +91,12 @@ if __name__ == "__main__":
     print steers
     
 class PID:
-	"""
-	Discrete PID control
-	"""
+    """
+    Discrete PID control
+    """
 
-    def __init__(self, P=2.0, I=0.1, D=1.0, Derivator=0, Integrator=0, 
-                 Integrator_max=500, Integrator_min=-500,PID_max=1,PID_min=-1):
+    def __init__(self, P=.03, I=0.001, D=0.01, Derivator=0, Integrator=0, 
+        Integrator_max=500, Integrator_min=-500,PID_max=1,PID_min=-1):
 
         self.Kp=P
         self.Ki=I
@@ -105,14 +105,15 @@ class PID:
         self.Integrator=Integrator
         self.Integrator_max=Integrator_max
         self.Integrator_min=Integrator_min
+        self.PID_range = PID_min, PID_max
 
         self.set_point=0.0
         self.error=0.0
 
     def update(self,current_value):
-		"""
-		Calculate PID output value for given reference input and feedback
-		"""
+        """
+        Calculate PID output value for given reference input and feedback
+        """
 
         self.error = self.set_point - current_value
 
@@ -130,17 +131,17 @@ class PID:
         self.I_value = self.Integrator * self.Ki
 
         PID = self.P_value + self.I_value + self.D_value
-        if PID < PID_min:
+        if PID < self.PID_range[0]:
             PID = -1
-        elif PID > PID_max:
+        elif PID > self.PID_range[1]:
             PID = 1
 
         return PID
 
     def setPoint(self,set_point):
-		"""
-		Initilize the setpoint of PID
-		"""
+        """
+        Initilize the setpoint of PID
+        """
         self.set_point = set_point
         self.Integrator=0
         self.Derivator=0
