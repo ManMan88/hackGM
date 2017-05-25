@@ -78,6 +78,7 @@ class OurDriver(Driver):
     def __init__(self, *args, **kwargs):
 
         Driver.__init__(self, *args, **kwargs)
+        self.max_speed = 200
         self._logger = logging.getLogger().getChild(self.__class__.__name__)
         self._curstate = keep_lane
         self.lowlevel_driver = self.get_driver(self._curstate)
