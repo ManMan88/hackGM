@@ -42,7 +42,7 @@ class Driver(object):
         self.control = carControl.CarControl()
 
         self.steer_lock = 0.366519
-        self.max_speed = 150
+        self.max_speed = 250
         self.prev_rpm = None
 
         self.stuckCounter = 0
@@ -197,6 +197,7 @@ class TestDriver(Driver):
         curvature = self.laneKeeper.findCurve(self.state)
         if self.isCurve(curvature):
             overide_velocity = curvature*self.steer_lock
+            print overide_velocity
             self.velocityKeeper.setVelocity(overide_velocity)
             
         self.velocityKeeper.drive(self.state, self.control)
@@ -208,8 +209,3 @@ class TestDriver(Driver):
         
         return self.max_speed/curvature > self.steer_lock
     
-    def curvedVelocity(self):
-        curvature = self.laneKeeper.findCurve(self.state)
-        overide_velocity = curvature*self.steer_lock
-        if overide_velocity > self.max_velocity:
-            overide_velocity = self.max_velocity
