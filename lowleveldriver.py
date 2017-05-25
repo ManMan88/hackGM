@@ -74,3 +74,41 @@ class LowLevelDriver(LowLevelDriverBase):
         """
 
         return max_speed / curvature > steer_lock
+
+    def findTrackPoly(self, state):
+        track_edges = self.calculateTrackEdges(state)
+
+        leftMax = np.argmax(state.track)
+        rightMax = len(state.track) - np.argmax(state.track[::-1]) - 1
+
+        rightTrack = track_edges[rightMax + 1:, :]
+        leftTrack = track_edges[:leftMax, :]
+
+        rightPoly = np.polyfit(rightTrack[::-1, 0], rightTrack[::-1, 1], 2)
+        leftPoly = np.polyfit(leftTrack[:, 0], leftTrack[:, 1], 2)
+
+        return rightPoly, leftPoly
+
+    def findDriversLocations(self, state):
+        # py 2.7
+        angles = range(-170, 181, 10)  # check that it creats list
+        drivers_y = np.array(state.opponets) * np.sin(np.deg2rad(self.angles))
+        drivers_x = np.array(state.opponets) * np.cos(np.deg2rad(self.angles))
+
+        drivers_edges = np.c_[drivers_x, drivers_y]
+        return drivers_edges
+
+    def locateDrivers(self, sensors, drivers_edges):
+        right_poly, left_poly = self.findTrackPoly(sensors)
+        indexes = sensors.opponets < 200
+        for index in np.nonzero(indexes)[0]:
+            x_driver = drivers_edges[index, 0]
+            y_driver = drivers_edges[index, 1]
+            y_right = np.polyval(right_poly, x_driver)
+            y_left = np.polyval(left_poly, x_driver)
+            self.numOfLanes = len(self.lanes)
+            laneWidth = 2 / self.numOfLanes
+            bins = np.linspace(y_left, y_right, self.numOfLanes + 1)
+
+            driver_lane = np.digitize(y_driver, bins[::-1]) - 1
+            # if driver_l
