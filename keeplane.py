@@ -35,14 +35,17 @@ class KeepLane(LowLevelDriver):
         control.steer = (angle - dist * 0.5) / self._steer_max
         self._logger.debug('steer = %s; dist = %s', control.steer, dist)
         if sensors.curLapTime - self.startTime < self.accelerateTime:
+            self._logger.debug('accelerating (time)!')
             target_vel = self.velSwitcher.get_target_velocity(sensors.curLapTime)
             self.velocityKeeper.setVelocity(target_vel)
         curvature = self.findCurve(sensors)
         if self.isCurve(curvature, self.parent.max_speed,self.parent.steer_lock ):
+            self._logger.debug('IN CURVE!!!!')
             overide_velocity = curvature * self.parent.steer_lock
             self._logger.debug('setting override velocity: %s', overide_velocity)
             self.velocityKeeper.setVelocity(overide_velocity)
 
+        self.velocityKeeper.drive(sensors, control)
 
 class SwitchLane(LowLevelDriver):
     def __init__(self, new_left, new_right, start_pos, start_angle, start_time, duration):
