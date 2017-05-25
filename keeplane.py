@@ -4,15 +4,18 @@ from scipy.interpolate import splrep, splev
 import numpy as np
 
 class KeepLane(LowLevelDriver):
-    def __init__(self, lim_left, lim_right):
+    #def __init__(self, lanes_str, lim_left, lim_right):
+    def __init__(self, lanes_str, lane):
         """
         Arguments:
         lane_left, lane_right - in trackPos units, e.g. on a 3-lane road 
             keeping right is between 1/3 and 1
         """
-        self._left = lim_left
-        self._right = lim_right
-        self._center = 0.5*(self._left + self._right)
+        LowLevelDriver.__init__(self, lanes_str)
+        
+        self.calculateLanesData()
+        left, right = self.findLaneBorders(lane)
+        self._center = 0.5*(left + right)
         self._width = 5.
         
         self._steer_max = 0.366519

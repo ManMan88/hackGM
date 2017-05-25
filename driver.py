@@ -42,7 +42,7 @@ class Driver(object):
         self.control = carControl.CarControl()
 
         self.steer_lock = 0.366519
-        self.max_speed = 300
+        self.max_speed = 150
         self.prev_rpm = None
 
         self.stuckCounter = 0
@@ -50,9 +50,6 @@ class Driver(object):
 
         self.lanes = [Direction[x] for x in lanes_str.split(',')]
         random.seed(a=seed)  # Set a random seed
-        
-        #self.keeper = KeepLane(-0.333, 1./3.)
-        self.switcher = SwitchLane(-1., -0.3333, 0.5, 0.0, 0, 5)
         
     def init(self):
         '''Return init string with rangefinder angles'''
@@ -74,7 +71,7 @@ class Driver(object):
         if self.is_stuck():
             self.bringCarBackOnTrack()
         else:
-            self.switcher.drive(self.state, self.control)
+            self.steer()
             self.gear()
             self.speed()
 
@@ -172,4 +169,14 @@ class Driver(object):
     
     def onRestart(self):
         pass
+
+class TestDriver(Driver):
+    def __init__(self, stage, lanes_str, seed):
+        Driver.__init__(self, stage, lanes_str, seed)
+        self.keeper = KeepLane(lanes_str, 0)
+        self.switcher = SwitchLane(-1., -0.3333, 0.5, 0.0, 0, 5)
         
+    def steer(self):
+        self.keeper.drive(self.state, self.control)
+        print self.keeper.findCurve(self.state)
+    

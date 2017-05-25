@@ -63,7 +63,7 @@ curEpisode = 0
 
 verbose = False
 
-d = OurDriver(arguments.stage, arguments.lanes, arguments.seed)
+d = driver.TestDriver(arguments.stage, arguments.lanes, arguments.seed)
 
 while not shutdownClient:
     while True:
