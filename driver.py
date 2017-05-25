@@ -51,9 +51,6 @@ class Driver(object):
         self.lanes = [Direction[x] for x in lanes_str.split(',')]
         random.seed(a=seed)  # Set a random seed
         
-        #self.keeper = KeepLane(-0.333, 1./3.)
-        self.switcher = SwitchLane(-1., -0.3333, 0.5, 0.0, 0, 5)
-        
     def init(self):
         '''Return init string with rangefinder angles'''
         self.angles = [0 for x in range(19)]
