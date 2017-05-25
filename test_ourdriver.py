@@ -33,12 +33,22 @@ def test_turn():
     driver.checkIfIsInTurn = lambda: True
     driver.drive_from_state(sensor_state, control)
     assert True
+
+def test_backOnTrack():
+    driver = getDriver()
+    control = CarControl()
+    sensor_state = CarState()
+    driver.ifIsStuck = lambda s: True
+    sensor_state._angle = 0.5
+    sensor_state._trackPos = 0.3
+    driver.drive_from_state(sensor_state, control)
+    assert True
     
 def main():
     # test_emergency()
     # test_turn()
-    test_keeplane()
+    # test_keeplane()
+    test_backOnTrack()
 
 if __name__ == '__main__':
-    logging.basicConfig(level=10)
     main()

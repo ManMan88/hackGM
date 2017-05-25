@@ -6,13 +6,13 @@ from lowlevel import LowLevelDriverBase
 
 
 class KeepLane(LowLevelDriverBase):
-    def __init__(self, lim_left, lim_right):
+    def __init__(self, parent, lim_left, lim_right):
         """
         Arguments:
         lane_left, lane_right - in trackPos units, e.g. on a 3-lane road 
             keeping right is between 1/3 and 1
         """
-        super(KeepLane, self).__init__()
+        super(KeepLane, self).__init__(parent)
         self._left = lim_left
         self._right = lim_right
         self._center = 0.5 * (self._left + self._right)

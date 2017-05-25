@@ -1,6 +1,6 @@
 import logging
 
-from driver import Driver
+from driver import Driver, STUCK_TIME
 from keeplane import KeepLane
 from lowlevel import LowLevelDriverBase
 
@@ -33,7 +33,6 @@ class bypass:
 class back_on_track: pass
 
 
-
 class EmergencyDummy(LowLevelDriverBase):
     def drive(self, sensors, control):
         self._logger.debug('here')
@@ -50,13 +49,39 @@ class SlowDownDummy(LowLevelDriverBase):
 
 
 class BackOnTrackDummy(LowLevelDriverBase):
+
     def drive(self, sensors, control):
         self._logger.debug('here')
+        if sensors.angle * sensors.trackPos > 0.0:
+            control.gear = 1
+            control.steer = - sensors.angle / 4
+        # Back of car is pointing into direction of street
+        else:
+            # to bring car parallel to track axis
+            control.steer = sensors.angle / 4  # steerLock;
+            control.gear = -1  # gear R
+
+        if self.parent.bringingCartBack < 5:
+
+            control.accel = 0
+            control.brake = 1
+            control.gear = 0
+            control.steer = 0
+
+        else:
+
+            # Build a CarControl variable and return it
+
+            control.accel = 0.3
+            control.brake = 0
+        control.clutch = 0
+        control.focus = 0
+        control.meta = 0
 
 
 class KeepLaneDummy(KeepLane):
-    def __init__(self):
-        super(KeepLaneDummy, self).__init__(-1, 1)
+    def __init__(self, parent):
+        super(KeepLaneDummy, self).__init__(parent, -1, 1)
 
     def drive(self, sensors, control):
         self._logger.debug('here')
@@ -73,10 +98,10 @@ class SwitchLaneDummy(LowLevelDriverBase):
         self._logger.debug('here')
 
 
-
 class OurDriver(Driver):
     def __init__(self, *args, **kwargs):
 
+        logging.basicConfig(level=10)
         Driver.__init__(self, *args, **kwargs)
         self.max_speed = 200
         self._logger = logging.getLogger().getChild(self.__class__.__name__)
@@ -91,7 +116,7 @@ class OurDriver(Driver):
                slow_down: SlowDownDummy,
                back_on_track: BackOnTrackDummy}[state]
         self._logger.debug(cls)
-        return cls()
+        return cls(self)
 
     def drive(self, msg):
         self.state.setFromMsg(msg)
@@ -117,7 +142,7 @@ class OurDriver(Driver):
 
     def _determine_state(self, cur_state, sensor_state):
         next_state = cur_state
-        if self.is_stuck():
+        if self.ifIsStuck(sensor_state):
             next_state = back_on_track
         elif self.ifIsGoingToCrash():
             next_state = emergency
@@ -179,3 +204,16 @@ class OurDriver(Driver):
 
     def ifReadyToBypass(self):
         pass
+
+    def ifIsStuck(self, sensors):
+        if sensors.trackPos > 1.0 or sensors.trackPos < -1.0:
+            # update stuckCounter counter
+            self.stuckCounter += 1
+            self.bringingCartBack = 150
+        else:
+            if self.bringingCartBack != 0:
+                self.bringingCartBack = self.bringingCartBack - 1
+            else:
+                # if not stuckCounter reset stuckCounter counter
+                self.stuckCounter = 0
+        return self.stuckCounter > STUCK_TIME
