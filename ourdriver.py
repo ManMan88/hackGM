@@ -1,8 +1,11 @@
 import logging
 
+import numpy
+
 from driver import Driver, STUCK_TIME
 from keeplane import KeepLane
 from lowlevel import LowLevelDriverBase
+from lowleveldriver import LowLevelDriver
 
 
 class in_turning: pass
@@ -51,7 +54,7 @@ class SlowDownDummy(LowLevelDriverBase):
 class BackOnTrackDummy(LowLevelDriverBase):
 
     def drive(self, sensors, control):
-        self._logger.debug('here')
+        # self._logger.debug('here')
         if sensors.angle * sensors.trackPos > 0.0:
             control.gear = 1
             control.steer = - sensors.angle / 4
@@ -81,7 +84,7 @@ class BackOnTrackDummy(LowLevelDriverBase):
 
 class KeepLaneDummy(KeepLane):
     def __init__(self, parent):
-        super(KeepLaneDummy, self).__init__(parent, -1, 1)
+        super(KeepLaneDummy, self).__init__(parent)
 
     def drive(self, sensors, control):
         self._logger.debug('here')
@@ -89,8 +92,7 @@ class KeepLaneDummy(KeepLane):
 
 
 class TurnerDummy(KeepLaneDummy):
-    def drive(self, sensors, control):
-        self._logger.debug('here')
+    pass
 
 
 class SwitchLaneDummy(LowLevelDriverBase):
@@ -100,13 +102,24 @@ class SwitchLaneDummy(LowLevelDriverBase):
 
 class OurDriver(Driver):
     def __init__(self, *args, **kwargs):
+        self.angles = numpy.zeros(19)
+        for i in range(5):
+            self.angles[i] = -90 + i * 15
+            self.angles[18 - i] = 90 - i * 15
+
+        for i in range(5, 9):
+            self.angles[i] = -20 + (i - 5) * 5
+            self.angles[18 - i] = 20 - (i - 5) * 5
 
         logging.basicConfig(level=10)
         Driver.__init__(self, *args, **kwargs)
-        self.max_speed = 200
+        self.max_speed = 100
         self._logger = logging.getLogger().getChild(self.__class__.__name__)
         self._curstate = keep_lane
-        self.lowlevel_driver = self.get_driver(self._curstate)
+        self.lowlevel_driver = None
+
+        self.util_driver = LowLevelDriver(self)
+
 
     def get_driver(self, state):
         cls = {emergency: EmergencyDummy,
@@ -120,18 +133,24 @@ class OurDriver(Driver):
 
     def drive(self, msg):
         self.state.setFromMsg(msg)
-        self.drive_from_state(self.state, self.control)
+        try:
+            self.drive_from_state(self.state, self.control)
+        except ValueError as err:
+            self._logger.debug('sensor values caused exception: %s', err)
         return self.control.toMsg()
 
     def drive_from_state(self, sensors, control):
-        self._logger.debug('cur_state %s', self._curstate)
+        self.sensors = sensors
+        # self._logger.debug('cur_state %s', self._curstate)
         next_state = self._determine_state(self._curstate, sensors)
-        self._logger.debug('next_state %s', next_state)
+        # self._logger.debug('next_state %s', next_state)
+        if self.lowlevel_driver is None:
+            self.lowlevel_driver = self.get_driver(next_state)
 
         if next_state != self._curstate:  # replace the driver
-            self._logger.debug('state changed: %s', next_state)
+            self._logger.info('state changed: %s', next_state)
             self.lowlevel_driver = self.get_driver(next_state)
-            self._logger.debug('lowlevel_driver %s', self.lowlevel_driver)
+            self._logger.info('lowlevel_driver %s', self.lowlevel_driver)
             self._curstate = next_state
 
         self.lowlevel_driver.drive(sensors, control)
@@ -140,9 +159,9 @@ class OurDriver(Driver):
         if not self.lowlevel_driver.speed_override:
             self.speed()
 
-    def _determine_state(self, cur_state, sensor_state):
+    def _determine_state(self, cur_state, sensors):
         next_state = cur_state
-        if self.ifIsStuck(sensor_state):
+        if self.ifIsStuck(sensors):
             next_state = back_on_track
         elif self.ifIsGoingToCrash():
             next_state = emergency
@@ -152,14 +171,14 @@ class OurDriver(Driver):
                     next_state = bypass
                 else:
                     next_state = slow_down
-            elif self.checkIfIsInTurn():
+            elif self.checkIfIsInTurn(sensors):
                 next_state = in_turning
             else:
                 next_state = keep_lane  # not going to crash
         elif cur_state in [in_turning]:
             if self.ifCarAhead():
                 next_state = slow_down
-            elif self.checkIfIsInTurn():
+            elif self.checkIfIsInTurn(sensors):
                 next_state = in_turning
             else:
                 next_state = keep_lane
@@ -196,8 +215,9 @@ class OurDriver(Driver):
     def ifCarAhead(self):
         pass
 
-    def checkIfIsInTurn(self):
-        pass
+    def checkIfIsInTurn(self, sensors):
+        curvature = self.util_driver.findCurve(sensors)
+        return self.util_driver.isCurve(curvature, self.max_speed, self.steer_lock)
 
     def ifIsGoingToCrash(self):
         pass
