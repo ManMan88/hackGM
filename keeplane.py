@@ -70,7 +70,7 @@ class KeepVelocity(LowLevelDriver):
     
     def drive(self,state,control):
         accel = self.velocityPID.update(state.speedX)
-        print accel
+#        print accel
         if accel >= 0:
             control.accel = accel
         else:

@@ -186,12 +186,21 @@ class TestDriver(Driver):
         #print self.isCurve(curvature)
     
     def speed(self):
+
+ 
+        print self.isCurve(curvature)
         if 5 < self.state.curLapTime < 15:
             target_vel = self.velSwitcher.get_target_velocity(self.state.curLapTime)
             self.velocityKeeper.setVelocity(target_vel)
-        elif self.state.curLapTime >= 20:
-            target_vel = self.break_event.get_target_velocity(self.state.curLapTime)
-            self.velocityKeeper.setVelocity(target_vel)
+#        elif self.state.curLapTime >= 20:
+#            target_vel = self.break_event.get_target_velocity(self.state.curLapTime)
+#            self.velocityKeeper.setVelocity(target_vel)
+            
+
+        curvature = self.laneKeeper.findCurve(self.state)
+        if self.isCurve(curvature):
+            overide_velocity = curvature*self.steer_lock
+            self.velocityKeeper.setVelocity(overide_velocity)
             
         self.velocityKeeper.drive(self.state, self.control)
     
@@ -199,4 +208,11 @@ class TestDriver(Driver):
         """
         True if angular velocity > steer max.
         """
+        
         return self.max_speed/curvature > self.steer_lock
+    
+    def curvedVelocity(self):
+        curvature = self.laneKeeper.findCurve(self.state)
+        overide_velocity = curvature*self.steer_lock
+        if overide_velocity > self.max_velocity:
+            overide_velocity = self.max_velocity
