@@ -12,7 +12,7 @@ import carControl
 import carState
 import msgParser
 
-from keeplane import KeepLane, SwitchLane
+from keeplane import KeepLane, SwitchLane, KeepVelocity
 
 STUCK_TIME = 25
 
@@ -173,13 +173,18 @@ class Driver(object):
 class TestDriver(Driver):
     def __init__(self, stage, lanes_str, seed):
         Driver.__init__(self, stage, lanes_str, seed)
-        self.keeper = KeepLane(lanes_str, 0)
+        self.laneKeeper = KeepLane(lanes_str, 0)
+        self.velocityKeeper = KeepVelocity()
         self.switcher = SwitchLane(-1., -0.3333, 0.5, 0.0, 0, 5)
+        self.velocityKeeper.setVelocity(self.max_speed)
         
     def steer(self):
-        self.keeper.drive(self.state, self.control)
-        curvature = self.keeper.findCurve(self.state)
+        self.laneKeeper.drive(self.state, self.control)
+        curvature = self.laneKeeper.findCurve(self.state)
         print self.isCurve(curvature)
+    
+    def speed(self):
+        self.velocityKeeper.drive(self.state, self.control)
     
     def isCurve(self, curvature):
         """
