@@ -12,7 +12,7 @@ import carControl
 import carState
 import msgParser
 
-from keeplane import KeepLane, SwitchLane, KeepVelocity
+from keeplane import KeepLane, SwitchLane, KeepVelocity, SwitchVelocity
 
 STUCK_TIME = 25
 
@@ -175,8 +175,10 @@ class TestDriver(Driver):
         Driver.__init__(self, stage, lanes_str, seed)
         self.laneKeeper = KeepLane(lanes_str, 0)
         self.velocityKeeper = KeepVelocity()
+        self.velSwitcher = SwitchVelocity(0, self.max_speed, 5, 10)
+        self.break_event = SwitchVelocity(self.max_speed, 0, 20, 3)
         self.switcher = SwitchLane(-1., -0.3333, 0.5, 0.0, 0, 5)
-        self.velocityKeeper.setVelocity(self.max_speed)
+        self.velocityKeeper.setVelocity(0)
         
     def steer(self):
         self.laneKeeper.drive(self.state, self.control)
@@ -184,6 +186,13 @@ class TestDriver(Driver):
         #print self.isCurve(curvature)
     
     def speed(self):
+        if 5 < self.state.curLapTime < 15:
+            target_vel = self.velSwitcher.get_target_velocity(self.state.curLapTime)
+            self.velocityKeeper.setVelocity(target_vel)
+        elif self.state.curLapTime >= 20:
+            target_vel = self.break_event.get_target_velocity(self.state.curLapTime)
+            self.velocityKeeper.setVelocity(target_vel)
+            
         self.velocityKeeper.drive(self.state, self.control)
     
     def isCurve(self, curvature):

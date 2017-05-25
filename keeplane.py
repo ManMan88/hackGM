@@ -55,15 +55,11 @@ class SwitchVelocity(LowLevelDriver):
         tmargin = (t1 - t0) /1.5
         pt = [t0 - tmargin, t0, t1, t1 + tmargin]
         pv = [v0 - tmargin * dv0, v0, v1, v1 + tmargin * dv1]
-        self._spline_params = splrep(pt, px)
+        self._spline_params = splrep(pt, pv)
     
-    def get_accel(self, time):
-        aeval = splev(time, self._spline_params, der=1)
-        return aeval
-    
-    def drive(self, state, control):
-        accel = self.get_accel(state.curLapTime)
-        control.accel = accel
+    def get_target_velocity(self, time):
+        tvel = splev(time, self._spline_params)
+        return tvel
     
 class KeepVelocity(LowLevelDriver):
     def __init__(self):
