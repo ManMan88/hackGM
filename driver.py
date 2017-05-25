@@ -12,6 +12,8 @@ import carControl
 import carState
 import msgParser
 
+from keeplane import KeepLane, SwitchLane
+
 STUCK_TIME = 25
 
 
@@ -40,7 +42,7 @@ class Driver(object):
         self.control = carControl.CarControl()
 
         self.steer_lock = 0.366519
-        self.max_speed = 100
+        self.max_speed = 300
         self.prev_rpm = None
 
         self.stuckCounter = 0
@@ -48,6 +50,10 @@ class Driver(object):
 
         self.lanes = [Direction[x] for x in lanes_str.split(',')]
         random.seed(a=seed)  # Set a random seed
+        
+        #self.keeper = KeepLane(-0.333, 1./3.)
+        self.switcher = SwitchLane(-1., -0.3333, 0.5, 0.0, 0, 5)
+        
     def init(self):
         '''Return init string with rangefinder angles'''
         self.angles = [0 for x in range(19)]
@@ -68,7 +74,7 @@ class Driver(object):
         if self.is_stuck():
             self.bringCarBackOnTrack()
         else:
-            self.steer()
+            self.switcher.drive(self.state, self.control)
             self.gear()
             self.speed()
 
