@@ -4,10 +4,11 @@ from driver import Driver
 from keeplane import SwitchLane, KeepLane
 from lowlevel import LowLevelDriverBase
 
-
+class in_turning: pass:
+    
 class switch_lane: pass
 
-class slow_down: pass:
+class slow_down: pass
     
 class keep_lane: pass
 
@@ -26,12 +27,11 @@ class back_on_track: pass
 logging.basicConfig(level=10)
 
 
-class Bypasser(LowLevelDriverBase):
+class BypasserDummy(LowLevelDriverBase):
     def drive(self, state, control):
         self._logger.debug('here')
 
-
-class BackOnTrack(LowLevelDriverBase):
+class BackOnTrackDummy(LowLevelDriverBase):
     def drive(self, state, control):
         self._logger.debug('here')
 
@@ -40,6 +40,9 @@ class KeepLaneDummy(LowLevelDriverBase):
     def drive(self, state, control):
         self._logger.debug('here')
 
+class TurnerDummy(KeepLaneDummy):
+    def drive(self, state, control):
+        self._logger.debug('here')
 
 class SwitchLaneDummy(LowLevelDriverBase):
     def drive(self, state, control):
@@ -51,12 +54,6 @@ class OurDriver(Driver):
 
         Driver.__init__(self, *args, **kwargs)
         self._logger = logging.getLogger().getChild(self.__class__.__name__)
-        self.keeper = KeepLaneDummy()  # KeepLane(-0.333, 1. / 3.)
-        self.switcher = SwitchLaneDummy() #SwitchLane(-1., -0.3333, 0.5, 0.0, 0, 5)
-        self.slowdown  = SlowDownDummy()
-        self.emergency  = EmegencyDummy()
-        self.bypass = Bypasser()
-        self.back_on_track = BackOnTrack()
         self._curstate = keep_lane
 
     def drive(self, msg):
@@ -66,15 +63,19 @@ class OurDriver(Driver):
 
     def drive_from_state(self, sensor_state, control):
         def get_driver(curstate):
-            return {emergency: self.emergency,
-                    keep_lane: self.keeper,
-                    bypass: self.bypass,
-                    back_on_track: self.back_on_track}[curstate]
+            return {emergency: EmegencyDummy,
+                    keep_lane: KeepLaneDummy,
+                    bypass: Bypasser,
+                    in_turning: TurnerDummy,
+                    slowdown:SlowDownDummy
+                    back_on_track: BackOnTrack}[curstate]()
 
-        self._curstate = self._determine_state(self._curstate, sensor_state)
-
-        lowlevel_driver = get_driver(self._curstate)
-        lowlevel_driver.drive(sensor_state, control)
+        next_state = self._determine_state(self._curstate, sensor_state)
+        if next_state != self._curstate: # replace the driver            
+            self.lowlevel_driver = get_driver(self._curstate)
+        self._curstate = next_state
+        
+        self.lowlevel_driver.drive(sensor_state, control)
 
         self.gear()
         if not lowlevel_driver.speed_override:
@@ -88,18 +89,28 @@ class OurDriver(Driver):
         pass
             
     def _determine_state(self,cur_state, sensor_state):
+        next_state = cur_state
         if self.is_stuck():
             next_state = back_on_track
         elif self.ifIsGoingToCrash():
             next_state = emergency
-        elif cur_state in [keep_lane,slow_dow ]:
+        elif cur_state in [keep_lane,slow_down ]:
             if self.ifCarAhead():
                 if self.ifReadyToBypass():
                     next_state = bypass
                 else:
                     next_state = slow_down
+            elif self.checkIfIsInTurn():
+                next_state = in_turning
             else:
-              next_state = keep_lane
+                next_state = keep_lane # not going to crash
+        elif cur_state in [in_turning ]:
+            if self.ifCarAhead():
+                next_state = slow_down
+            elif self.checkIfIsInTurn():
+                next_state = in_turning
+            else:
+                next_state = keep_lane 
         elif cur_state in [emergency ]:
             if self.ifCarAhead():
                 next_state = slow_down
