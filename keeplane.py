@@ -21,6 +21,7 @@ class KeepLane(LowLevelDriver):
         self._width = 5.
         self.startTime = parent.sensors.curLapTime
 
+        self.velSwitcher = SwitchVelocity(0, self.parent.max_speed, self.startTime, 10)
         self._steer_max = 0.366519
         self.velocityKeeper = KeepVelocity()
 
@@ -34,8 +35,6 @@ class KeepLane(LowLevelDriver):
         self._logger.debug('steer = %s; dist = %s', control.steer, dist)
         if sensors.curLapTime - self.startTime < self.accelerateTime:
             self._logger.debug('accelerating (time)!')
-
-            self.velSwitcher = SwitchVelocity(0, self.parent.max_speed, 5, 10)
             target_vel = self.velSwitcher.get_target_velocity(sensors.curLapTime)
             self.velocityKeeper.setVelocity(target_vel)
 
