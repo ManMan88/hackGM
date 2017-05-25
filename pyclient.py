@@ -11,6 +11,7 @@ import socket
 import sys
 
 import driver
+from ourdriver import OurDriver
 
 if __name__ == '__main__':
     pass
@@ -18,9 +19,9 @@ if __name__ == '__main__':
 # Configure the argument parser
 parser = argparse.ArgumentParser(description='Python client to connect to the TORCS SCRC server.')
 
-parser.add_argument('--host', action='store', dest='host_ip', default='192.168.2.14',
+parser.add_argument('--host', action='store', dest='host_ip', default='localhost',
                     help='Host IP address (default: localhost)')
-parser.add_argument('--port', action='store', type=int, dest='host_port', default=3002,
+parser.add_argument('--port', action='store', type=int, dest='host_port', default=3001,
                     help='Host port number (default: 3001)')
 parser.add_argument('--id', action='store', dest='id', default='SCR',
                     help='Bot ID (default: SCR)')
@@ -63,7 +64,7 @@ curEpisode = 0
 
 verbose = False
 
-d = driver.Driver(arguments.stage, arguments.lanes, arguments.seed)
+d = OurDriver(arguments.stage, arguments.lanes, arguments.seed)
 
 while not shutdownClient:
     while True:

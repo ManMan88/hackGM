@@ -63,7 +63,6 @@ class Driver(object):
         return self.parser.stringify({'init': self.angles})
 
     def drive(self, msg):
-        print(msg)
         self.state.setFromMsg(msg)
 
         if self.is_stuck():
