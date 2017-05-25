@@ -42,20 +42,20 @@ class LowLevelDriver(object):
     def calculateTrackEdges(self):
         track_y = np.array(self.state.track)*np.cos(self.state.track)
         track_x = np.array(self.state.track)*np.sin(self.state.track)
-        track_edges=np.zeros((19,2))
+        self.track_edges=np.zeros((19,2))
         counter=0
         for y,x in zip(track_y,track_x):
-            track_edges[counter]=[x,y]
+            self.track_edges[counter]=[x,y]
             counter+=1
-        return track_edges
+        return self.track_edges
         
     def findCurve(self):
         leftMax =  np.argmax(self.state.track)
-        rightMax =  len(self.state.track) - np.argmax(np.flip(self.state.track) -1
-        rightTrack = track_edges[rightMax+1:,:]
-        leftTrack = track_edges[:leftMax,:]
-        rightPoly = np.polyfit(rightTrack[:,0],rightTrack[:,1])
-        leftPoly =  np.polyfit(leftTrack[:,0],leftTrack[:,1])
+        rightMax =  len(self.state.track) - np.argmax(np.flip(self.state.track)) -1
+        rightTrack = self.track_edges[rightMax+1:,:]
+        leftTrack = self.track_edges[:leftMax,:]
+        rightPoly = np.polyfit(rightTrack[:,0],rightTrack[:,1],2)
+        leftPoly =  np.polyfit(leftTrack[:,0],leftTrack[:,1],2)
         rightCurve = ((1 + (2*rightPoly[0]*self.rightTrack[:,0] + rightPoly[1])**2)**1.5) / np.absolute(2*rightPoly[0])
         leftCurve = ((1 + (2*leftPoly[0]*self.leftTrack[:,0] + leftPoly[1])**2)**1.5) / np.absolute(2*leftPoly[0])
         curve = (rightCurve+leftCurve)/2
