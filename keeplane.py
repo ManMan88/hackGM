@@ -5,7 +5,7 @@ import numpy as np
 
 
 class KeepLane(LowLevelDriver):
-    def __init__(self, parent, lane=1, accel_max=15.):
+    def __init__(self, parent, lane=0, accel_max=15.):
         """
         Arguments:
         lane_left, lane_right - in trackPos units, e.g. on a 3-lane road

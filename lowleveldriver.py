@@ -61,8 +61,8 @@ class LowLevelDriver(LowLevelDriverBase):
         rightPoly = np.polyfit(rightTrack[::-1, 0], rightTrack[::-1, 1], 2)
         leftPoly = np.polyfit(leftTrack[:, 0], leftTrack[:, 1], 2)
 
-        rightCurve = ((1 + (2 * rightPoly[0] * rightTrack[-3, 0] + rightPoly[1]) ** 2) ** 1.5) / np.absolute(2 * rightPoly[0])
-        leftCurve = ((1 + (2 * leftPoly[0] * leftTrack[2, 0] + leftPoly[1]) ** 2) ** 1.5) / np.absolute(2 * leftPoly[0])
+        rightCurve = ((1 + (2 * rightPoly[0] * rightTrack[-1, 0] + rightPoly[1]) ** 2) ** 1.5) / np.absolute(2 * rightPoly[0])
+        leftCurve = ((1 + (2 * leftPoly[0] * leftTrack[0, 0] + leftPoly[1]) ** 2) ** 1.5) / np.absolute(2 * leftPoly[0])
         if leftMax > 9:
             curve = leftCurve
         elif rightMax < 9:

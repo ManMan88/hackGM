@@ -83,7 +83,7 @@ class BackOnTrackDummy(LowLevelDriverBase):
 
 
 class Turner(KeepLane):
-    def __init__(self, parent, lane=1, accel_max=150.):
+    def __init__(self, parent, lane=0, accel_max=150.):
         """
         Arguments:
         lane_left, lane_right - in trackPos units, e.g. on a 3-lane road
