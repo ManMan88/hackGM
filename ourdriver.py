@@ -83,7 +83,7 @@ class BackOnTrackDummy(LowLevelDriverBase):
 
 
 class Turner(KeepLane):
-    def __init__(self, parent, lane=1, accel_max=10.):
+    def __init__(self, parent, lane=1, accel_max=150.):
         """
         Arguments:
         lane_left, lane_right - in trackPos units, e.g. on a 3-lane road
@@ -121,10 +121,14 @@ class Turner(KeepLane):
             self._logger.debug('decelerating (time)!')
             target_vel = self.velSwitcher.get_target_velocity(sensors.curLapTime)
             self.velocityKeeper.setVelocity(target_vel)
+            print "target" , target_vel
         else:
             curvature = self.findCurve(sensors)
             overide_velocity = curvature * self.parent.steer_lock * 1
+            if overide_velocity < 60:
+                overide_velocity = 60
             self.velocityKeeper.setVelocity(overide_velocity)
+            print "target" , overide_velocity
         self.velocityKeeper.drive(sensors, control)
         
 
@@ -146,7 +150,7 @@ class OurDriver(Driver):
 
         logging.basicConfig(level=10)
         Driver.__init__(self, *args, **kwargs)
-        self.max_speed = 100
+        self.max_speed = 150
         self._logger = logging.getLogger().getChild(self.__class__.__name__)
         self._curstate = keep_lane
         self.lowlevel_driver = None
