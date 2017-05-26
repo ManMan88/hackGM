@@ -27,7 +27,7 @@ class Driver(object):
     A driver object for the SCRC
     '''
 
-    def __init__(self, stage, lanes_str, seed):
+    def __init__(self, stage, lanes_str, seed, **kwargs):
         '''Constructor'''
         self.WARM_UP = 0
         self.QUALIFYING = 1

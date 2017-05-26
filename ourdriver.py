@@ -1,5 +1,4 @@
 import logging
-
 import numpy
 
 from driver import Driver, STUCK_TIME
@@ -83,7 +82,7 @@ class BackOnTrackDummy(LowLevelDriverBase):
 
 
 class Turner(KeepLane):
-    def __init__(self, parent, lane=1, accel_max=10.):
+    def __init__(self, parent, accel_max=10.):
         """
         Arguments:
         lane_left, lane_right - in trackPos units, e.g. on a 3-lane road
@@ -91,9 +90,9 @@ class Turner(KeepLane):
         """
         LowLevelDriver.__init__(self, parent)
         curvature = self.findCurve(parent.sensors)
-        
-        self.calculateLanesData()
-        left, right = self.findLaneBorders(lane)
+
+        self.calculateLanesData(parent.sensors)
+        left, right = self.findLaneBorders(self.lane)
         self._logger.debug('left: %s, right: %s', left, right)
         self._center = 0.5 * (left + right)
         self._steer_max = 0.366519
@@ -146,7 +145,7 @@ class OurDriver(Driver):
 
         logging.basicConfig(level=10)
         Driver.__init__(self, *args, **kwargs)
-        self.max_speed = 100
+        self.max_speed = kwargs.get('max_speed', 100)
         self._logger = logging.getLogger().getChild(self.__class__.__name__)
         self._curstate = keep_lane
         self.lowlevel_driver = None
@@ -168,7 +167,7 @@ class OurDriver(Driver):
         self.state.setFromMsg(msg)
         try:
             self.drive_from_state(self.state, self.control)
-        except ValueError as err:
+        except Exception as err:
             self._logger.debug('sensor values caused exception: %s', err)
         return self.control.toMsg()
 

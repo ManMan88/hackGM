@@ -1,21 +1,22 @@
-from lowleveldriver import LowLevelDriver
-
-from scipy.interpolate import splrep, splev
 import numpy as np
+from scipy.interpolate import splrep, splev
+
+from lowleveldriver import LowLevelDriver
 
 
 class KeepLane(LowLevelDriver):
-    def __init__(self, parent, lane=1, accel_max=15.):
+    def __init__(self, parent, accel_max=15.):
         """
         Arguments:
         lane_left, lane_right - in trackPos units, e.g. on a 3-lane road
             keeping right is between 1/3 and 1
         """
         LowLevelDriver.__init__(self, parent)
+
+        self.calculateLanesData(parent.sensors)
+        left, right = self.findLaneBorders(self.lane)
         self.accelerateTime = abs(parent.max_speed - parent.sensors.speedX) / accel_max
-        
-        self.calculateLanesData()
-        left, right = self.findLaneBorders(lane)
+
         self._logger.debug('left: %s, right: %s', left, right)
         self._center = 0.5 * (left + right)
         self._width = 5.
@@ -27,6 +28,7 @@ class KeepLane(LowLevelDriver):
         self.velocityKeeper = KeepVelocity()
 
     def drive(self, sensors, control):
+
         angle = sensors.angle
         dist = sensors.trackPos - self._center
         self._logger.debug('sensors.trackPos = %s; center = %s; dist = %s', sensors.trackPos, self._center, dist)

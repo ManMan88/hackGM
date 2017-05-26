@@ -5,11 +5,11 @@ Created on Apr 4, 2012
 @author: lanquarden
 Edited by General Motors
 '''
-import random
-import sys
 import argparse
+import random
 import socket
-import driver
+import sys
+
 from ourdriver import OurDriver
 
 if __name__ == '__main__':
@@ -37,6 +37,8 @@ parser.add_argument('--lanes', action='store', dest='lanes', default='FORWARD,FO
                          'FORWARD or OPPOSITE indicating the lane direction')
 parser.add_argument('--seed', action='store', dest='seed', default=random.randint(0, 100),
                     help='Seed for the random behaviour. If not specified will still have some randomness')
+parser.add_argument('--max_speed', action='store', dest='max_speed', default=100,
+                    help='')
 
 arguments = parser.parse_args()
 
@@ -63,7 +65,7 @@ curEpisode = 0
 
 verbose = False
 
-d = OurDriver(arguments.stage, arguments.lanes, arguments.seed)
+d = OurDriver(arguments.stage, arguments.lanes, arguments.seed, max_speed=float(arguments.max_speed))
 
 while not shutdownClient:
     while True:
