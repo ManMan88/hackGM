@@ -15,7 +15,7 @@ class LowLevelDriver(LowLevelDriverBase):
         super(LowLevelDriver, self).__init__(parent)
         self.angles = parent.angles
         self.lanes = parent.lanes
-        self.lane = -1
+        self.calculateLanesData(parent.sensors)
 
     def calculateLanesData(self, sensors):
         self.numOfLanes = len(self.lanes)
@@ -119,11 +119,11 @@ class LowLevelDriver(LowLevelDriverBase):
             drivers.append([driver_lane,sensors.opponets[index]])
         return drivers
     
-    def isCarAhead(self,drivers,lane):
+    def isCarAhead(self,drivers):
         areThere = False
         min_distance = -1
         drivers_lanes = drivers[:,0]
-        drivers_in_my_lane = np.nonzero(drivers_lanes == lane)[0]
+        drivers_in_my_lane = np.nonzero(drivers_lanes == self.lane)[0]
         if len(drivers_in_my_lane):
             areThere = True
             min_distance = np.min(drivers_lanes(drivers_in_my_lane))

@@ -92,7 +92,7 @@ class Turner(KeepLane):
         LowLevelDriver.__init__(self, parent)
         curvature = self.findCurve(parent.sensors)
 
-        self.calculateLanesData(parent.sensors)
+#        self.calculateLanesData(parent.sensors)
         left, right = self.findLaneBorders(self.lane)
         self._logger.debug('left: %s, right: %s', left, right)
         self._center = 0.5 * (left + right)
@@ -250,7 +250,9 @@ class OurDriver(Driver):
         pass
 
     def ifCarAhead(self):
-        pass
+        drivers_edges = self.util_driver.findDriversLocations(sensors)
+        drivers = self.util_driver.locateDrivers(sensors,drivers_edges)
+        return = self.util_driver.isCarAhead(drivers,)
 
     def checkIfIsInTurn(self, sensors):
         curvature = self.util_driver.findCurve(sensors)
