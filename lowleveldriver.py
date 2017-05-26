@@ -21,7 +21,7 @@ class LowLevelDriver(LowLevelDriverBase):
         self.numOfLanes = len(self.lanes)
         laneWidth = 2 / self.numOfLanes
         self.lanesPositions = [(-1 + i * laneWidth) for i in range(0, self.numOfLanes)]
-        if sensors.trackPos > 1  or sensors.trackPos < -1:
+        if sensors.trackPos > 1 or sensors.trackPos < -1:
             raise ValueError()
         else:
             self.lane = np.flatnonzero(np.array(self.lanesPositions) < sensors.trackPos)[0]
@@ -57,11 +57,12 @@ class LowLevelDriver(LowLevelDriverBase):
         leftTrack = track_edges[:leftMax, :]
         if not len(rightTrack) or not len(leftTrack):
             raise ValueError('empty left or right track sensors')
-        
+
         rightPoly = np.polyfit(rightTrack[::-1, 0], rightTrack[::-1, 1], 2)
         leftPoly = np.polyfit(leftTrack[:, 0], leftTrack[:, 1], 2)
 
-        rightCurve = ((1 + (2 * rightPoly[0] * rightTrack[-1, 0] + rightPoly[1]) ** 2) ** 1.5) / np.absolute(2 * rightPoly[0])
+        rightCurve = ((1 + (2 * rightPoly[0] * rightTrack[-1, 0] + rightPoly[1]) ** 2) ** 1.5) / np.absolute(
+            2 * rightPoly[0])
         leftCurve = ((1 + (2 * leftPoly[0] * leftTrack[0, 0] + leftPoly[1]) ** 2) ** 1.5) / np.absolute(2 * leftPoly[0])
         if leftMax > 9:
             curve = leftCurve
@@ -93,18 +94,18 @@ class LowLevelDriver(LowLevelDriverBase):
 
         return rightPoly, leftPoly
 
-    def findDriversLocations(self, state):
+    def findDriversLocations(self, sensors):
         # py 2.7
         angles = range(-170, 181, 10)  # check that it creats list
-        drivers_y = np.array(state.opponets) * np.sin(np.deg2rad(self.angles))
-        drivers_x = np.array(state.opponets) * np.cos(np.deg2rad(self.angles))
+        drivers_y = np.array(sensors.opponents) * np.sin(np.deg2rad(angles))
+        drivers_x = np.array(sensors.opponents) * np.cos(np.deg2rad(angles))
 
         drivers_edges = np.c_[drivers_x, drivers_y]
         return drivers_edges
 
     def locateDrivers(self, sensors, drivers_edges):
         right_poly, left_poly = self.findTrackPoly(sensors)
-        indexes = sensors.opponets < 200
+        indexes = sensors.opponents < 200
         drivers = []
         for index in np.nonzero(indexes)[0]:
             x_driver = drivers_edges[index, 0]
@@ -116,13 +117,18 @@ class LowLevelDriver(LowLevelDriverBase):
             bins = np.linspace(y_left, y_right, self.numOfLanes + 1)
 
             driver_lane = np.digitize(y_driver, bins[::-1]) - 1
-            drivers.append([driver_lane,sensors.opponets[index]])
+            drivers.append([driver_lane, sensors.opponents[index]])
         return drivers
-    
-    def isCarAhead(self,drivers):
+
+    def isCarAhead(self, drivers):
+        if not len(drivers):
+            return False, None
+
+        drivers = np.array(drivers)
+        self._logger.debug(drivers)
         areThere = False
-        min_distance = -1
-        drivers_lanes = drivers[:,0]
+        min_distance = None
+        drivers_lanes = drivers[:, 0]
         drivers_in_my_lane = np.nonzero(drivers_lanes == self.lane)[0]
         if len(drivers_in_my_lane):
             areThere = True
