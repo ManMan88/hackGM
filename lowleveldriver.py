@@ -1,6 +1,6 @@
-from enum import Enum
 import numpy as np
-from scipy.constants import degree
+
+from enum import Enum
 
 from lowlevel import LowLevelDriverBase
 
@@ -17,14 +17,14 @@ class LowLevelDriver(LowLevelDriverBase):
         self.lanes = parent.lanes
         self.lane = -1
 
-    def calculateLanesData(self):
+    def calculateLanesData(self, sensors):
         self.numOfLanes = len(self.lanes)
         laneWidth = 2 / self.numOfLanes
         self.lanesPositions = [(-1 + i * laneWidth) for i in range(0, self.numOfLanes)]
-        # if(state.trackpos > 1  or state.trackpos < -1):
-        #    pass            #todo
-        # else:
-        #    self.lane = np.where(self.lanesPositions <state.trackpos)[0]
+        if sensors.trackPos > 1  or sensors.trackPos < -1:
+            raise ValueError()
+        else:
+            self.lane = np.flatnonzero(np.array(self.lanesPositions) < sensors.trackPos)[0]
 
     def findLaneBorders(self, lane):
         leftSide = self.lanesPositions[lane]
