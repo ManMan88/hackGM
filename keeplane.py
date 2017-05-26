@@ -5,15 +5,15 @@ import numpy as np
 
 
 class KeepLane(LowLevelDriver):
-    def __init__(self, parent, lane=1):
+    def __init__(self, parent, lane=1, accel_max=15.):
         """
         Arguments:
         lane_left, lane_right - in trackPos units, e.g. on a 3-lane road
             keeping right is between 1/3 and 1
         """
-        self.accelerateTime = 15
         LowLevelDriver.__init__(self, parent)
-
+        self.accelerateTime = abs(parent.max_speed - parent.sensors.speedX) / accel_max
+        
         self.calculateLanesData()
         left, right = self.findLaneBorders(lane)
         self._logger.debug('left: %s, right: %s', left, right)
@@ -21,12 +21,12 @@ class KeepLane(LowLevelDriver):
         self._width = 5.
         self.startTime = parent.sensors.curLapTime
 
-        self.velSwitcher = SwitchVelocity(0, self.parent.max_speed, self.startTime, 10)
+        self.velSwitcher = SwitchVelocity(
+            parent.sensors.speedX, parent.max_speed, self.startTime, self.accelerateTime)
         self._steer_max = 0.366519
         self.velocityKeeper = KeepVelocity()
 
     def drive(self, sensors, control):
-
         angle = sensors.angle
         dist = sensors.trackPos - self._center
         self._logger.debug('sensors.trackPos = %s; center = %s; dist = %s', sensors.trackPos, self._center, dist)
@@ -37,14 +37,8 @@ class KeepLane(LowLevelDriver):
             self._logger.debug('accelerating (time)!')
             target_vel = self.velSwitcher.get_target_velocity(sensors.curLapTime)
             self.velocityKeeper.setVelocity(target_vel)
-
-        curvature = self.findCurve(sensors)
-        if self.isCurve(curvature, self.parent.max_speed,self.parent.steer_lock ):
-            self._logger.debug('IN CURVE!!!!')
-            overide_velocity = curvature * self.parent.steer_lock
-            self._logger.debug('setting override velocity: %s', overide_velocity)
-            self.velocityKeeper.setVelocity(overide_velocity)
-
+        else:
+            self.velocityKeeper.setVelocity(self.parent.max_speed)
         self.velocityKeeper.drive(sensors, control)
 
 class SwitchLane(LowLevelDriver):
@@ -96,9 +90,11 @@ class KeepVelocity(object):
         print('accel: ', accel)
         #        print accel
         if accel >= 0:
-            control.accel = accel
+            control.accel = float(accel)
+            control.brake = 0.
         else:
-            control.brake = -accel
+            control.accel = 0.
+            control.brake = -float(accel)
 
 
 
@@ -109,7 +105,7 @@ class PID(object):
     """
 
     def __init__(self, P=.03, I=0.001, D=0.01, Derivator=0, Integrator=0,
-                 Integrator_max=500, Integrator_min=-500, PID_max=1, PID_min=-1):
+                 Integrator_max=500, Integrator_min=-500, PID_max=1., PID_min=-1.):
 
         self.Kp = P
         self.Ki = I
@@ -145,9 +141,9 @@ class PID(object):
 
         PID = self.P_value + self.I_value + self.D_value
         if PID < self.PID_range[0]:
-            PID = -1
+            PID = -1.
         elif PID > self.PID_range[1]:
-            PID = 1
+            PID = 1.
 
         return PID
 

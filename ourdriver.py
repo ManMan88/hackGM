@@ -3,7 +3,7 @@ import logging
 import numpy
 
 from driver import Driver, STUCK_TIME
-from keeplane import KeepLane
+from keeplane import KeepLane, SwitchVelocity, KeepVelocity
 from lowlevel import LowLevelDriverBase
 from lowleveldriver import LowLevelDriver
 
@@ -82,18 +82,51 @@ class BackOnTrackDummy(LowLevelDriverBase):
         control.meta = 0
 
 
-class KeepLaneDummy(KeepLane):
-    def __init__(self, parent):
-        super(KeepLaneDummy, self).__init__(parent)
-
+class Turner(KeepLane):
+    def __init__(self, parent, lane=1, accel_max=10.):
+        """
+        Arguments:
+        lane_left, lane_right - in trackPos units, e.g. on a 3-lane road
+            keeping right is between 1/3 and 1
+        """
+        LowLevelDriver.__init__(self, parent)
+        curvature = self.findCurve(parent.sensors)
+        
+        self.calculateLanesData()
+        left, right = self.findLaneBorders(lane)
+        self._logger.debug('left: %s, right: %s', left, right)
+        self._center = 0.5 * (left + right)
+        self._steer_max = 0.366519
+        
+        self._logger.debug('IN CURVE!!!!')
+        overide_velocity = curvature * parent.steer_lock * 1
+        self._logger.debug('setting override velocity: %s', overide_velocity)
+        
+        self.accelerateTime = abs(parent.sensors.speedX - overide_velocity) / accel_max
+        self.startTime = parent.sensors.curLapTime
+        self.velSwitcher = SwitchVelocity(
+            parent.sensors.speedX, overide_velocity, self.startTime, self.accelerateTime)
+        self.velocityKeeper = KeepVelocity()
+        self.parent = parent
+        
     def drive(self, sensors, control):
         self._logger.debug('here')
-        super(KeepLaneDummy, self).drive(sensors, control)
+        angle = sensors.angle
+        dist = sensors.trackPos - self._center
+        self._logger.debug('sensors.trackPos = %s; center = %s; dist = %s', sensors.trackPos, self._center, dist)
 
-
-class TurnerDummy(KeepLaneDummy):
-    pass
-
+        control.steer = (angle - dist * 0.5) / self._steer_max
+        
+        if sensors.curLapTime - self.startTime < self.accelerateTime:
+            self._logger.debug('decelerating (time)!')
+            target_vel = self.velSwitcher.get_target_velocity(sensors.curLapTime)
+            self.velocityKeeper.setVelocity(target_vel)
+        else:
+            curvature = self.findCurve(sensors)
+            overide_velocity = curvature * self.parent.steer_lock * 1
+            self.velocityKeeper.setVelocity(overide_velocity)
+        self.velocityKeeper.drive(sensors, control)
+        
 
 class SwitchLaneDummy(LowLevelDriverBase):
     def drive(self, sensors, control):
@@ -123,9 +156,9 @@ class OurDriver(Driver):
 
     def get_driver(self, state):
         cls = {emergency: EmergencyDummy,
-               keep_lane: KeepLaneDummy,
+               keep_lane: KeepLane,
                bypass: BypasserDummy,
-               in_turning: TurnerDummy,
+               in_turning: Turner,
                slow_down: SlowDownDummy,
                back_on_track: BackOnTrackDummy}[state]
         self._logger.debug(cls)
@@ -156,8 +189,8 @@ class OurDriver(Driver):
         self.lowlevel_driver.drive(sensors, control)
 
         self.gear()
-        if not self.lowlevel_driver.speed_override:
-            self.speed()
+        #if not self.lowlevel_driver.speed_override:
+        #    self.speed()
 
     def _determine_state(self, cur_state, sensors):
         next_state = cur_state
