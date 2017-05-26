@@ -49,9 +49,11 @@ class BypasserDummy(LowLevelDriverBase):
 class SlowDown(LowLevelDriverBase):
     def drive(self, sensors, control):
         self._logger.debug('driving')
+        control.accel = 0
+        control.brake = .5
 
 
-class BackOnTrackDummy(LowLevelDriverBase):
+class BackOnTrack(LowLevelDriver):
 
     def drive(self, sensors, control):
         # self._logger.debug('here')
@@ -164,7 +166,7 @@ class OurDriver(Driver):
                bypass: BypasserDummy,
                in_turning: Turner,
                slow_down: SlowDown,
-               back_on_track: BackOnTrackDummy}[state]
+               back_on_track: BackOnTrack}[state]
         self._logger.debug(cls)
         return cls(self)
 
