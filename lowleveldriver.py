@@ -121,7 +121,7 @@ class LowLevelDriver(LowLevelDriverBase):
             self._logger.debug('bins: %s y_driver: %s', bins, y_driver)
             driver_lane = np.digitize(y_driver, bins[::-1]) - 1
             self._logger.debug('driver_lane: %s', driver_lane)
-            drivers.append([driver_lane, sensors.opponents[index]])
+            drivers.append([driver_lane, x_driver])
         return drivers
 
     def isCarAhead(self, drivers):
@@ -134,7 +134,10 @@ class LowLevelDriver(LowLevelDriverBase):
         min_distance = None
         drivers_lanes = drivers[:, 0]
         self._logger.debug('my lane is: %s', self.lane)
-        drivers_in_my_lane = np.flatnonzero(drivers_lanes == self.lane)
+        right_in_front = (drivers[:,1] > 0) & (drivers[:,1] < 150)
+        in_lane = drivers_lanes == self.lane
+        drivers_in_my_lane = np.flatnonzero(in_lane & right_in_front)
+        
         self._logger.debug('in my lane: %s', drivers_in_my_lane)
         if len(drivers_in_my_lane):
             areThere = True
