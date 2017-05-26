@@ -118,9 +118,9 @@ class LowLevelDriver(LowLevelDriverBase):
             y_left = np.polyval(left_poly, x_driver)
             self.numOfLanes = len(self.lanes)
             bins = np.linspace(y_left, y_right, self.numOfLanes + 1)
-
+            self._logger.debug('bins: %s y_driver: %s', bins, y_driver)
             driver_lane = np.digitize(y_driver, bins[::-1]) - 1
-            # self._logger.debug('driver lane: %s', driver_lane)
+            self._logger.debug('driver_lane: %s', driver_lane)
             drivers.append([driver_lane, sensors.opponents[index]])
         return drivers
 
