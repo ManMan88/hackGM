@@ -117,3 +117,12 @@ class LowLevelDriver(LowLevelDriverBase):
 
             driver_lane = np.digitize(y_driver, bins[::-1]) - 1
             drivers.append([driver_lane,sensors.opponets[index]])
+        return drivers
+    
+    def isCarAhead(self,drivers,lane):
+        areThere = False
+        drivers_lanes = drivers[:,0]
+        drivers_in_my_lane = np.nonzero(drivers_lanes == lane)[0]
+        if len(drivers_in_my_lane):
+            areThere = True
+        return areThere
