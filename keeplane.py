@@ -70,7 +70,7 @@ class SwitchVelocity(object):
         t0, v0 = start_time, start_velocity
         t1, v1 = start_time + duration, new_velocity
         dv0, dv1 = 0, 0
-        tmargin = (t1 - t0) / 1.5
+        tmargin = (t1 - t0) / 3
         pt = [t0 - tmargin, t0, t1, t1 + tmargin]
         pv = [v0 - tmargin * dv0, v0, v1, v1 + tmargin * dv1]
         self._spline_params = splrep(pt, pv)
