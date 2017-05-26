@@ -97,26 +97,30 @@ class LowLevelDriver(LowLevelDriverBase):
     def findDriversLocations(self, sensors):
         # py 2.7
         angles = range(-170, 181, 10)  # check that it creats list
+
+        # self._logger.debug('opponents: %s', sensors.opponents)
         drivers_y = np.array(sensors.opponents) * np.sin(np.deg2rad(angles))
         drivers_x = np.array(sensors.opponents) * np.cos(np.deg2rad(angles))
 
         drivers_edges = np.c_[drivers_x, drivers_y]
+        # self._logger.debug('computing driver locations: %s', drivers_edges)
         return drivers_edges
 
     def locateDrivers(self, sensors, drivers_edges):
         right_poly, left_poly = self.findTrackPoly(sensors)
-        indexes = sensors.opponents < 200
         drivers = []
-        for index in np.nonzero(indexes)[0]:
+        indexes = np.flatnonzero(np.array(sensors.opponents) < 200)
+        self._logger.debug('indexes: %s', indexes)
+        for index in indexes:
             x_driver = drivers_edges[index, 0]
             y_driver = drivers_edges[index, 1]
             y_right = np.polyval(right_poly, x_driver)
             y_left = np.polyval(left_poly, x_driver)
             self.numOfLanes = len(self.lanes)
-            laneWidth = 2 / self.numOfLanes
             bins = np.linspace(y_left, y_right, self.numOfLanes + 1)
 
             driver_lane = np.digitize(y_driver, bins[::-1]) - 1
+            # self._logger.debug('driver lane: %s', driver_lane)
             drivers.append([driver_lane, sensors.opponents[index]])
         return drivers
 
@@ -125,12 +129,15 @@ class LowLevelDriver(LowLevelDriverBase):
             return False, None
 
         drivers = np.array(drivers)
-        self._logger.debug(drivers)
+        self._logger.debug('DRIVERS!!! %s', drivers)
         areThere = False
         min_distance = None
         drivers_lanes = drivers[:, 0]
-        drivers_in_my_lane = np.nonzero(drivers_lanes == self.lane)[0]
+        self._logger.debug('my lane is: %s', self.lane)
+        drivers_in_my_lane = np.flatnonzero(drivers_lanes == self.lane)
+        self._logger.debug('in my lane: %s', drivers_in_my_lane)
         if len(drivers_in_my_lane):
             areThere = True
-            min_distance = np.min(drivers_lanes(drivers_in_my_lane))
+            min_distance = np.min(drivers_lanes[drivers_in_my_lane])
+            self._logger.debug('min dist: %s', min_distance)
         return areThere, min_distance

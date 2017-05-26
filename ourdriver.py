@@ -182,7 +182,11 @@ class OurDriver(Driver):
 
         if self.util_driver is None:
             self.util_driver = LowLevelDriver(self)
-        next_state = self._determine_state(self._curstate, sensors)
+        try:
+            next_state = self._determine_state(self._curstate, sensors)
+        except Exception as err:
+            self._logger.debug('change state failed %s', err)
+            return
         # self._logger.debug('next_state %s', next_state)
         if self.lowlevel_driver is None:
             self.lowlevel_driver = self.get_driver(next_state)
