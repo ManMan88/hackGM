@@ -47,10 +47,15 @@ class BypasserDummy(LowLevelDriverBase):
 
 
 class SlowDown(LowLevelDriverBase):
+    def __init__(self, parent):
+        self.velocityKeeper = KeepVelocity()
+        self.velocityKeeper.setVelocity(parent.sensors.speedX*0.75)
+        
     def drive(self, sensors, control):
+        self.velocityKeeper.drive(sensors, control)
         self._logger.debug('driving')
-        control.accel = 0
-        control.brake = .5
+        #control.accel = 0
+        #control.brake = .5
 
 
 class BackOnTrack(LowLevelDriver):
