@@ -105,6 +105,7 @@ class LowLevelDriver(LowLevelDriverBase):
     def locateDrivers(self, sensors, drivers_edges):
         right_poly, left_poly = self.findTrackPoly(sensors)
         indexes = sensors.opponets < 200
+        drivers = []
         for index in np.nonzero(indexes)[0]:
             x_driver = drivers_edges[index, 0]
             y_driver = drivers_edges[index, 1]
@@ -115,4 +116,4 @@ class LowLevelDriver(LowLevelDriverBase):
             bins = np.linspace(y_left, y_right, self.numOfLanes + 1)
 
             driver_lane = np.digitize(y_driver, bins[::-1]) - 1
-            # if driver_l
+            drivers.append([driver_lane,sensors.opponets[index]])
