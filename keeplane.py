@@ -104,7 +104,7 @@ class PID(object):
     Discrete PID control
     """
 
-    def __init__(self, P=.03, I=0.001, D=0.01, Derivator=0, Integrator=0,
+    def __init__(self, P=.03, I=0.005, D=0.01, Derivator=0, Integrator=0,
                  Integrator_max=500, Integrator_min=-500, PID_max=1., PID_min=-1.):
 
         self.Kp = P

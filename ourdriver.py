@@ -150,7 +150,7 @@ class OurDriver(Driver):
 
         logging.basicConfig(level=10)
         Driver.__init__(self, *args, **kwargs)
-        self.max_speed = 150
+        self.max_speed = 250
         self._logger = logging.getLogger().getChild(self.__class__.__name__)
         self._curstate = keep_lane
         self.lowlevel_driver = None
