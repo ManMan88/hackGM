@@ -48,7 +48,7 @@ class BypasserDummy(LowLevelDriverBase):
 
 class SlowDown(LowLevelDriverBase):
     def __init__(self, parent):
-        self.velocityKeeper = KeepVelocity()
+        self.velocityKeeper = KeepVelocity(P=.01, I=0.001, D=0.01)
         self.velocityKeeper.setVelocity(parent.sensors.speedX*0.75)
         
     def drive(self, sensors, control):

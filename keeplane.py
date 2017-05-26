@@ -81,8 +81,8 @@ class SwitchVelocity(object):
 
 
 class KeepVelocity(object):
-    def __init__(self):
-        self.velocityPID = PID()
+    def __init__(self, P=.03, I=0.005, D=0.01):
+        self.velocityPID = PID(P, I, D)
 
     def setVelocity(self, velocity):
         self.velocityPID.setPoint(velocity)
