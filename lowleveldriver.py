@@ -121,8 +121,10 @@ class LowLevelDriver(LowLevelDriverBase):
     
     def isCarAhead(self,drivers,lane):
         areThere = False
+        min_distance = -1
         drivers_lanes = drivers[:,0]
         drivers_in_my_lane = np.nonzero(drivers_lanes == lane)[0]
         if len(drivers_in_my_lane):
             areThere = True
-        return areThere
+            min_distance = np.min(drivers_lanes(drivers_in_my_lane))
+        return areThere, min_distance
